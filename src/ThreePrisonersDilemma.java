@@ -150,12 +150,16 @@ public class ThreePrisonersDilemma {
 	/* For King Chody -- Note: King Chody is a NastyPlayer */
 	class KingChody extends NastyPlayer {
 		
+		/* I AM KING CHODY */
+
 	}
 	/* For King Chody */
 	
 	/* Gosu the Minion -- Note: Gosu the Minion is a NicePlayer */
 	class GosuTheMinion extends NicePlayer {
 		
+		/* ALL HAIL KING CHODY!! */
+
 	}
 	/* Gosu the Minion */
 
