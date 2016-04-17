@@ -6,7 +6,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 public class ThreePrisonersDilemma {
 
@@ -209,23 +208,24 @@ public class ThreePrisonersDilemma {
 
     /* For King Chody */
 
- /* Gosu the Minion -- Note: Gosu the Minion is a NicePlayer */
+	/* Gosu the Minion -- Note: Gosu the Minion is a NicePlayer */
     class GosuTheMinion extends NicePlayer {
 
-        // For tracking Def/Coop probabilities
+        // For tracking Defect/Cooperate probabilities
         private double opp1Def = 0;
         private double opp2Def = 0;
 
         // Thresholds
-        private static final double BULLY_THRESHOLD = 0.75;
-        private static final double DEFENSIVE_THRESHOLD = 0.85;
+        private static final double FRIENDLY_THRESHOLD = 0.850;
+        private static final double DEFENSIVE_THRESHOLD = 0.750;
 
         /* ALL HAIL KING CHODY!! */
         int selectAction(int n, int[] myHistory, int[] oppHistory1, int[] oppHistory2) {
 
-            // Start by picking a random action!
+            // Start by cooperating
             if (n == 0) {
-                return (int) Math.rint(1 * Math.random());
+            	
+            	return 0;
             }
 
             // Calculate probability for Def/Coop (Opponent 1)
@@ -240,34 +240,96 @@ public class ThreePrisonersDilemma {
 
             /*System.out.printf("Opponent 1: %.3f, %.3f, Opponent 2: %.3f, %.3f%n",
 					opp1CoopProb, opp1DefProb, opp2CoopProb, opp2DefProb);*/
-            if (opp1CoopProb > BULLY_THRESHOLD
-                    && opp2CoopProb > BULLY_THRESHOLD
-                    && oppHistory1[n - 1] == oppHistory2[n - 1]
-                    && oppHistory1[n - 1] == 0) {
+            
+            if (opp1CoopProb >= FRIENDLY_THRESHOLD
+                    && opp2CoopProb >= FRIENDLY_THRESHOLD
+                    && oppHistory1[n - 1] == 0
+                    && oppHistory2[n - 1] == 0) {
 
-                // Good chance both opponents will coop, def to maximize gain!
-                return 1;
-            } else if (opp1DefProb > DEFENSIVE_THRESHOLD
-                    && opp2DefProb > DEFENSIVE_THRESHOLD
-                    && oppHistory1[n - 1] == oppHistory2[n - 1]
-                    && oppHistory1[n - 1] == 1) {
+                // Good chance that both opponents will cooperate
+            	// Just cooperate so that everyone will be happy
+            	return 0;
+                
+            } else if (( opp1DefProb >= DEFENSIVE_THRESHOLD || opp2DefProb >= DEFENSIVE_THRESHOLD)
+                    && (oppHistory1[n - 1] == 1 || oppHistory2[n - 1] == 1) ) {
 
-                // Good chance both opponents will def, def to protect myself!
+            	// Given that one of the opponents have been relatively nasty,
+            	// and one of them has defected in the previous turn,
+                // high prob that one of them will defect again,
+            	// defect to protect myself!
                 return 1;
-            } else // Follow previous action of the 'friendlier' opponent
-            {
-                if (opp1CoopProb > opp2CoopProb) {
-                    return oppHistory1[n - 1];
-                } else {
-                    return oppHistory2[n - 1];
-                }
+                
             }
+            else {
+            	
+            	if(n >= 2) {
+            		
+            		// Check if either opponent has defected in the last 2 turns
+					if (oppHistory1[n - 1] == 1 || oppHistory2[n - 1] == 1 ||
+						oppHistory1[n - 2] == 1 || oppHistory2[n - 2] == 1) {
+						
+						// DESTROY them!!
+						return 1;
+					}
+					else {
+						
+						// Just be friendly!
+						return 0;
+					}
+            	}
+            	else {
+            		
+            		// At this moment, both players are not that friendly,
+            		// and yet neither of them are relatively nasty.
+            		// Just be friendly for now.
+            		return 0;
+            	}
+			}
         }
     }
-
     /* Gosu the Minion */
+    
+	class PM_Low extends Player {
+		
+		int myScore = 0;
+		int opp1Score = 0;
+		int opp2Score = 0;
 
- /*
+		int selectAction(int n, int[] myHistory, int[] oppHistory1, int[] oppHistory2) {
+
+			if (n == 0) {
+				return 0; // cooperate by default
+			}
+
+			// get the recent history index
+			int i = n - 1;
+
+			// add up the total score/points for each player
+			myScore += payoff[myHistory[i]][oppHistory1[i]][oppHistory2[i]];
+			opp1Score += payoff[oppHistory1[i]][oppHistory2[i]][myHistory[i]];
+			opp2Score += payoff[oppHistory2[i]][myHistory[i]][oppHistory1[i]];
+
+			// if my score is lower than the any of them
+			// it means that at least one of them have defected
+			if (myScore >= opp1Score && myScore >= opp2Score) {
+
+				// cooperate if my score is higher or equal than all of them
+				return 0;
+			}
+
+			return 1; // defect if my score is lower than any of them
+		}
+	}
+	
+	class Han_Solo_Ming extends PM_Low {}
+	
+	class Bob extends GosuTheMinion {}
+	class Jerry extends GosuTheMinion {}
+	class Phil extends GosuTheMinion {}
+	class Stuart extends GosuTheMinion {}
+	class Tom extends GosuTheMinion {}
+
+    /*
 	 * In our tournament, each pair of strategies will play one match against
 	 * each other. This procedure simulates a single match and returns the
 	 * scores.
@@ -314,7 +376,7 @@ public class ThreePrisonersDilemma {
 	 * need to add a new entry to makePlayer, and change numPlayers.
      */
     // TODO: Change numPlayers
-    int numPlayers = 8;
+    int numPlayers = 15;
 
     Player makePlayer(int which) {
 
@@ -337,6 +399,20 @@ public class ThreePrisonersDilemma {
                 return new Bummer();
             case 7:
                 return new GosuTheMinion();
+            case 8:
+            	return new PM_Low();
+            case 9:
+            	return new Han_Solo_Ming();
+            case 10:
+            	return new Bob();
+            case 11:
+            	return new Jerry();
+            case 12:
+            	return new Phil();
+            case 13:
+            	return new Stuart();
+            case 14:
+            	return new Tom();
         }
         throw new RuntimeException("Bad argument passed to makePlayer");
     }
@@ -371,6 +447,8 @@ public class ThreePrisonersDilemma {
                     playerScore.getKey(),
                     playerScore.getValue() / totalTour);
         }
+        
+        map1stPlace = sortByIntValuesDesc(map1stPlace);
 
         System.out.println("\n==================================="
                 + " Rankings! ===================================");
@@ -392,11 +470,6 @@ public class ThreePrisonersDilemma {
 
     private static Map<String, Double> playerScores = new HashMap<>();
 
-    /**
-     * Used for sorting a Map by its Double values, in descending order<p>
-     * Returned map is a LinkedHashMap which preserves order
-     *
-     */
     public static Map<String, Double> sortByDoubleValuesDesc(Map<String, Double> map) {
 
         if (map == null) {
@@ -415,6 +488,30 @@ public class ThreePrisonersDilemma {
         // Using LinkedHashMap to preserve order
         Map<String, Double> sortedMap = new LinkedHashMap<>();
         for (Map.Entry<String, Double> mapEntry : list) {
+            sortedMap.put(mapEntry.getKey(), mapEntry.getValue());
+        }
+
+        return sortedMap;
+    }
+    
+    public static Map<String, Integer> sortByIntValuesDesc(Map<String, Integer> map) {
+
+        if (map == null) {
+            return map;
+        }
+
+        List<Map.Entry<String, Integer>> list = new LinkedList<>(map.entrySet());
+
+        // Sort based on values, in descending order
+        Collections.sort(list, new Comparator<Map.Entry<String, Integer>>() {
+            public int compare(Map.Entry<String, Integer> mapEntry1, Map.Entry<String, Integer> mapEntry2) {
+                return mapEntry2.getValue().compareTo(mapEntry1.getValue());
+            }
+        });
+
+        // Using LinkedHashMap to preserve order
+        Map<String, Integer> sortedMap = new LinkedHashMap<>();
+        for (Map.Entry<String, Integer> mapEntry : list) {
             sortedMap.put(mapEntry.getKey(), mapEntry.getValue());
         }
 
@@ -494,11 +591,13 @@ public class ThreePrisonersDilemma {
             playerScores.put(playerName, currentScore);
 
             if (i < 1) {
+            	// 1st place finishes
                 Integer numTop1 = map1stPlace.get(playerName);
                 map1stPlace.put(playerName, (numTop1 == null) ? 1 : numTop1 + 1);
             }
 
             if (i < 3) {
+            	// Top 3 finishes
                 Integer numTop3 = mapTop3.get(playerName);
                 mapTop3.put(playerName, (numTop3 == null) ? 1 : numTop3 + 1);
             }
