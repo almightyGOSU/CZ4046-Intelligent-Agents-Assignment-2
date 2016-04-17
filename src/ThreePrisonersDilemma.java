@@ -183,31 +183,89 @@ public class ThreePrisonersDilemma {
     /* For Bummer -- Note: Bummer is a NastyPlayer */
     class Bummer extends NastyPlayer {
 
-        //Coop for min 3 rounds at first, defects once any opp starts to defect 
+  //Count the number of defects by opp
         int intPlayer1Defects = 0;
         int intPlayer2Defects = 0;
 
+        //Store the round where agent retaliate against defects
+        int intRoundRetailate = -1;
+
+        //Number of rounds where agent coop to observer opp actions
+        int intObservationRound = 2;
+
+        //Number of rounds where agent retaliate defects with defects
+        //After this round, see opp actions to check if they decide to coop again
+        int intGrudgeRound = 3;
+
         int selectAction(int n, int[] myHistory, int[] oppHistory1, int[] oppHistory2) {
 
+            //Record Defects count
             if (n > 0) {
                 intPlayer1Defects += oppHistory1[n - 1];
                 intPlayer2Defects += oppHistory2[n - 1];
             }
 
-            if (n < 2) {
+            //Start by cooperating
+            if (n < intObservationRound) {
                 return 0; //cooperate by default
             }
 
-            if (intPlayer1Defects > 2 || intPlayer2Defects > 2) {
+            //Loop rounds where agent coop to reverse the effects of retaliation
+            if (intRoundRetailate < -1) {
+                intRoundRetailate += 1;
+                intPlayer1Defects = 0;
+                intPlayer2Defects = 0;
+
+                return 0;
+            }
+
+            //Check at round retaliated + threshold to measure if opp wishes to coop again
+            if (intRoundRetailate > -1 && n == intRoundRetailate + intGrudgeRound + 1) {
+
+                //Count the number of coop during retaliate round to check opp coop level
+                int intPlayer1Coop = 0;
+                int intPlayer2Coop = 0;
+
+                for (int intCount = 0; intCount < intGrudgeRound; intCount++) {
+                    intPlayer1Coop += oppHistory1[n - 1 - intCount];
+                    intPlayer2Coop += oppHistory2[n - 1 - intCount];
+                }
+
+                //If both players wish to coop again, start to coop with them
+                if (intPlayer1Coop > 0 && intPlayer2Coop > 0) {
+
+                    //Hold round where agent coop to show intention to coop again
+                    //Count backwards from -2
+                    //-2 indicates 1 round where agent coop to reverse effect of retailation
+                    //-5 indicates 4 rounds where agent coop to reverse effect
+                    intRoundRetailate = -2;
+
+                    intPlayer1Defects = 0;
+                    intPlayer2Defects = 0;
+
+                    return 0;
+                } else {
+                    intRoundRetailate = n;
+                    return 1;
+                }
+
+            }
+
+            //Punish Defection by defecting straight away
+            //Stores the round defected
+            if (intPlayer1Defects + intPlayer2Defects > 0) {
+                intRoundRetailate = n;
                 return 1;
             }
 
+            //Coop as default action
             return 0;
         }
     }
+
     /* For King Chody */
 
-	/* Gosu the Minion -- Note: Gosu the Minion is a NicePlayer */
+ /* Gosu the Minion -- Note: Gosu the Minion is a NicePlayer */
     class GosuTheMinion extends NicePlayer {
 
         // For tracking Defect/Cooperate probabilities
@@ -223,8 +281,8 @@ public class ThreePrisonersDilemma {
 
             // Start by cooperating
             if (n == 0) {
-            	
-            	return 0;
+
+                return 0;
             }
 
             // Calculate probability for Def/Coop (Opponent 1)
@@ -239,88 +297,83 @@ public class ThreePrisonersDilemma {
 
             /*System.out.printf("Opponent 1: %.3f, %.3f, Opponent 2: %.3f, %.3f%n",
 					opp1CoopProb, opp1DefProb, opp2CoopProb, opp2DefProb);*/
-            
             if (opp1CoopProb >= FRIENDLY_THRESHOLD
                     && opp2CoopProb >= FRIENDLY_THRESHOLD
                     && oppHistory1[n - 1] == 0
                     && oppHistory2[n - 1] == 0) {
 
                 // Good chance that both opponents will cooperate
-            	// Just cooperate so that everyone will be happy
-            	return 0;
-                
-            } else if (( opp1DefProb >= DEFENSIVE_THRESHOLD || opp2DefProb >= DEFENSIVE_THRESHOLD)
-                    && (oppHistory1[n - 1] == 1 || oppHistory2[n - 1] == 1) ) {
+                // Just cooperate so that everyone will be happy
+                return 0;
 
-            	// Given that one of the opponents have been relatively nasty,
-            	// and one of them has defected in the previous turn,
+            } else if ((opp1DefProb >= DEFENSIVE_THRESHOLD || opp2DefProb >= DEFENSIVE_THRESHOLD)
+                    && (oppHistory1[n - 1] == 1 || oppHistory2[n - 1] == 1)) {
+
+                // Given that one of the opponents have been relatively nasty,
+                // and one of them has defected in the previous turn,
                 // high prob that one of them will defect again,
-            	// defect to protect myself!
+                // defect to protect myself!
                 return 1;
-                
+
+            } else if (n >= 2) {
+
+                // Check if either opponent has defected in the last 2 turns
+                if (oppHistory1[n - 1] == 1 || oppHistory2[n - 1] == 1
+                        || oppHistory1[n - 2] == 1 || oppHistory2[n - 2] == 1) {
+
+                    // DESTROY them!!
+                    return 1;
+                } else {
+
+                    // Just be friendly!
+                    return 0;
+                }
+            } else {
+
+                // At this moment, both players are not that friendly,
+                // and yet neither of them are relatively nasty.
+                // Just be friendly for now.
+                return 0;
             }
-            else {
-            	
-            	if(n >= 2) {
-            		
-            		// Check if either opponent has defected in the last 2 turns
-					if (oppHistory1[n - 1] == 1 || oppHistory2[n - 1] == 1 ||
-						oppHistory1[n - 2] == 1 || oppHistory2[n - 2] == 1) {
-						
-						// DESTROY them!!
-						return 1;
-					}
-					else {
-						
-						// Just be friendly!
-						return 0;
-					}
-            	}
-            	else {
-            		
-            		// At this moment, both players are not that friendly,
-            		// and yet neither of them are relatively nasty.
-            		// Just be friendly for now.
-            		return 0;
-            	}
-			}
         }
     }
+
     /* Gosu the Minion */
-    
-	class PM_Low extends Player {
-		
-		int myScore = 0;
-		int opp1Score = 0;
-		int opp2Score = 0;
 
-		int selectAction(int n, int[] myHistory, int[] oppHistory1, int[] oppHistory2) {
+    class PM_Low extends Player {
 
-			if (n == 0) {
-				return 0; // cooperate by default
-			}
+        int myScore = 0;
+        int opp1Score = 0;
+        int opp2Score = 0;
 
-			// get the recent history index
-			int i = n - 1;
+        int selectAction(int n, int[] myHistory, int[] oppHistory1, int[] oppHistory2) {
 
-			// add up the total score/points for each player
-			myScore += payoff[myHistory[i]][oppHistory1[i]][oppHistory2[i]];
-			opp1Score += payoff[oppHistory1[i]][oppHistory2[i]][myHistory[i]];
-			opp2Score += payoff[oppHistory2[i]][myHistory[i]][oppHistory1[i]];
+            if (n == 0) {
+                return 0; // cooperate by default
+            }
 
-			// if my score is lower than the any of them
-			// it means that at least one of them have defected
-			if (myScore >= opp1Score && myScore >= opp2Score) {
+            // get the recent history index
+            int i = n - 1;
 
-				// cooperate if my score is higher or equal than all of them
-				return 0;
-			}
+            // add up the total score/points for each player
+            myScore += payoff[myHistory[i]][oppHistory1[i]][oppHistory2[i]];
+            opp1Score += payoff[oppHistory1[i]][oppHistory2[i]][myHistory[i]];
+            opp2Score += payoff[oppHistory2[i]][myHistory[i]][oppHistory1[i]];
 
-			return 1; // defect if my score is lower than any of them
-		}
-	}
-	
-	class Han_Solo_Ming extends PM_Low {}
+            // if my score is lower than the any of them
+            // it means that at least one of them have defected
+            if (myScore >= opp1Score && myScore >= opp2Score) {
+
+                // cooperate if my score is higher or equal than all of them
+                return 0;
+            }
+
+            return 1; // defect if my score is lower than any of them
+        }
+    }
+
+    class Han_Solo_Ming extends PM_Low {
+    }
 
     /*
 	 * In our tournament, each pair of strategies will play one match against
@@ -393,9 +446,9 @@ public class ThreePrisonersDilemma {
             case 7:
                 return new GosuTheMinion();
             case 8:
-            	return new PM_Low();
+                return new PM_Low();
             case 9:
-            	return new Han_Solo_Ming();
+                return new Han_Solo_Ming();
         }
         throw new RuntimeException("Bad argument passed to makePlayer");
     }
@@ -430,7 +483,7 @@ public class ThreePrisonersDilemma {
                     playerScore.getKey(),
                     playerScore.getValue() / totalTour);
         }
-        
+
         map1stPlace = sortByIntValuesDesc(map1stPlace);
 
         System.out.println("\n==================================="
@@ -476,7 +529,7 @@ public class ThreePrisonersDilemma {
 
         return sortedMap;
     }
-    
+
     public static Map<String, Integer> sortByIntValuesDesc(Map<String, Integer> map) {
 
         if (map == null) {
@@ -574,13 +627,13 @@ public class ThreePrisonersDilemma {
             playerScores.put(playerName, currentScore);
 
             if (i < 1) {
-            	// 1st place finishes
+                // 1st place finishes
                 Integer numTop1 = map1stPlace.get(playerName);
                 map1stPlace.put(playerName, (numTop1 == null) ? 1 : numTop1 + 1);
             }
 
             if (i < 3) {
-            	// Top 3 finishes
+                // Top 3 finishes
                 Integer numTop3 = mapTop3.get(playerName);
                 mapTop3.put(playerName, (numTop3 == null) ? 1 : numTop3 + 1);
             }
