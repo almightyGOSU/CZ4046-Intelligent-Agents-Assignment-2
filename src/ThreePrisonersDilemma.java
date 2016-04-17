@@ -205,7 +205,6 @@ public class ThreePrisonersDilemma {
             return 0;
         }
     }
-
     /* For King Chody */
 
 	/* Gosu the Minion -- Note: Gosu the Minion is a NicePlayer */
@@ -322,12 +321,6 @@ public class ThreePrisonersDilemma {
 	}
 	
 	class Han_Solo_Ming extends PM_Low {}
-	
-	class Bob extends GosuTheMinion {}
-	class Jerry extends GosuTheMinion {}
-	class Phil extends GosuTheMinion {}
-	class Stuart extends GosuTheMinion {}
-	class Tom extends GosuTheMinion {}
 
     /*
 	 * In our tournament, each pair of strategies will play one match against
@@ -376,7 +369,7 @@ public class ThreePrisonersDilemma {
 	 * need to add a new entry to makePlayer, and change numPlayers.
      */
     // TODO: Change numPlayers
-    int numPlayers = 15;
+    int numPlayers = 10;
 
     Player makePlayer(int which) {
 
@@ -403,16 +396,6 @@ public class ThreePrisonersDilemma {
             	return new PM_Low();
             case 9:
             	return new Han_Solo_Ming();
-            case 10:
-            	return new Bob();
-            case 11:
-            	return new Jerry();
-            case 12:
-            	return new Phil();
-            case 13:
-            	return new Stuart();
-            case 14:
-            	return new Tom();
         }
         throw new RuntimeException("Bad argument passed to makePlayer");
     }
