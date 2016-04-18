@@ -229,8 +229,8 @@ public class ThreePrisonersDilemma {
                 for (int intCount = 0; intCount < intGrudgeRound; intCount++) {
                     intPlayer1Coop += oppHistory1[n - 1 - intCount] == 0 ? 1 : 0;
                     intPlayer2Coop += oppHistory2[n - 1 - intCount] == 0 ? 1 : 0;
-                    intPlayer1Coop += oppHistory1[n - 1 - intCount] == 1 ? 1 : 0;
-                    intPlayer2Coop += oppHistory2[n - 1 - intCount] == 1 ? 1 : 0;
+                    //intPlayer1Coop += oppHistory1[n - 1 - intCount] == 1 ? 1 : 0;
+                    //intPlayer2Coop += oppHistory2[n - 1 - intCount] == 1 ? 1 : 0;
                 }
 
                 //If both players wish to coop again, start to coop with them
