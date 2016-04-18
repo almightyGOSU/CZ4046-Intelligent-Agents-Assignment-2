@@ -183,7 +183,7 @@ public class ThreePrisonersDilemma {
     /* For Bummer -- Note: Bummer is a NastyPlayer */
     class Bummer extends NastyPlayer {
 
-  //Count the number of defects by opp
+        //Count the number of defects by opp
         int intPlayer1Defects = 0;
         int intPlayer2Defects = 0;
 
@@ -191,7 +191,7 @@ public class ThreePrisonersDilemma {
         int intRoundRetailate = -1;
 
         //Number of rounds where agent coop to observer opp actions
-        int intObservationRound = 2;
+        int intObservationRound = 1;
 
         //Number of rounds where agent retaliate defects with defects
         //After this round, see opp actions to check if they decide to coop again
@@ -227,13 +227,14 @@ public class ThreePrisonersDilemma {
                 int intPlayer2Coop = 0;
 
                 for (int intCount = 0; intCount < intGrudgeRound; intCount++) {
-                    intPlayer1Coop += oppHistory1[n - 1 - intCount];
-                    intPlayer2Coop += oppHistory2[n - 1 - intCount];
+                    intPlayer1Coop += oppHistory1[n - 1 - intCount] == 0 ? 1 : 0;
+                    intPlayer2Coop += oppHistory2[n - 1 - intCount] == 0 ? 1 : 0;
+                    intPlayer1Coop += oppHistory1[n - 1 - intCount] == 1 ? 1 : 0;
+                    intPlayer2Coop += oppHistory2[n - 1 - intCount] == 1 ? 1 : 0;
                 }
 
                 //If both players wish to coop again, start to coop with them
-                if (intPlayer1Coop > 0 && intPlayer2Coop > 0) {
-
+                if (intPlayer1Coop > 1 && intPlayer2Coop > 1 && (oppHistory1[n - 1] + oppHistory2[n - 1]) == 0) {
                     //Hold round where agent coop to show intention to coop again
                     //Count backwards from -2
                     //-2 indicates 1 round where agent coop to reverse effect of retailation
@@ -339,7 +340,6 @@ public class ThreePrisonersDilemma {
     }
 
     /* Gosu the Minion */
-
     class PM_Low extends Player {
 
         int myScore = 0;
@@ -416,6 +416,9 @@ public class ThreePrisonersDilemma {
         return result;
     }
 
+    class NicePlayer2 extends NastyPlayer {
+    }
+
     /*
 	 * The procedure makePlayer is used to reset each of the Players
 	 * (strategies) in between matches. When you add your own strategy, you will
@@ -435,19 +438,19 @@ public class ThreePrisonersDilemma {
                 return new RandomPlayer();
             case 3:
                 return new TolerantPlayer();
-            case 4:
+            case 9:
                 return new FreakyPlayer();
-            case 5:
+            case 4:
                 return new T4TPlayer();
 
             // TODO: Add entry to makePlayer
+            case 5:
+                return new GosuTheMinion();
             case 6:
                 return new Bummer();
             case 7:
-                return new GosuTheMinion();
-            case 8:
                 return new PM_Low();
-            case 9:
+            case 8:
                 return new Han_Solo_Ming();
         }
         throw new RuntimeException("Bad argument passed to makePlayer");
